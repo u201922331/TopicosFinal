@@ -10,8 +10,13 @@ import pandas as pd
 from enum import Enum
 import time
 import pygame
+import statistics
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.backends.backend_agg as agg
 
 
+import pylab
 # GAME
 # =====
 class Colors(Enum):
@@ -98,10 +103,19 @@ class Game:
 # =================
 agentList = []
 graphNodes = []
-averageTime = []
+
+
+
 graph = []
 grid = 8
 
+averagefood = []
+averagerestaurant = []
+averagedistributor = []
+
+food_list = []
+restaurant_list = []
+distributor_list = []
 
 
 # GRAPH
@@ -129,24 +143,26 @@ def random_edge(nb_edges, delete=True):
             except:
                 print('Already added')
 
-
-
 def generate_2d_graph(n, coef=False, delete=True, show=False):
     global graph
-    print('before generate', len(graph))
+    # print('before generate', len(graph.nodes))
     graph = nx.grid_2d_graph(n, n)
+    print('already generate', len(graph.nodes))
 
-    if not coef:
+    if coef is not False:
         nb_ = int(len(list(graph.nodes)) * coef)
         random_edge(nb_, delete)
+        print('nb', nb_)
     
     print('already generate', len(graph))
 
-    pos = nx.spring_layout(graph, iterations=100)
+    
     graph.remove_edges_from(list(nx.isolates(graph)))
-    graph = graph.to_directed()
+    graph.remove_nodes_from(list(nx.isolates(graph)))
+    pos = nx.spring_layout(graph, iterations=100)
 
-    print('afeter generate', len(graph))
+    graph = graph.to_directed()
+    print('afeter generate', len(graph.nodes))
 
     if show:
         nx.draw(graph, pos, node_color='b', node_size=20, with_labels=False)
@@ -249,11 +265,15 @@ class Restaurant(Agent):
         self.preparingFood = []
         self.readyFood = []
         self.deliveryFood = []
+        self.numberpreparedfood = 0
+        self.maxpreparedfood = 0
 
     def update(self):
         # Actualiza el estado de preparing Food
         for food in self.preparingFood:
             food.step()
+        self.maxpreparedfood = max(self.maxpreparedfood, len(self.preparingFood))
+
         for food in self.readyFood:
             food.step()
         for food in self.deliveryFood:
@@ -292,6 +312,7 @@ class Restaurant(Agent):
         for food in auxdeliveryFood:
             self.readyFood.remove(food)
             self.deliveryFood.append(food)
+            self.numberpreparedfood += 1
 
     def decide_sendFood(self):
         # Verificar si el distribuidor está en la poicion restaurante
@@ -344,7 +365,9 @@ class Restaurant(Agent):
 
     def to_string(self):
         print('I am restaurant', self.id, 'with state', self.state.name, 'at the position ', self.position)
-
+    
+    def print_capacity(self):
+        return self.maxpreparedfood / self.capacity
 
 # DISTRIBUTOR
 # ============
@@ -360,6 +383,7 @@ class Distributor(Agent):
         self.setroute()
         super().__init__(id, self.position, DistributorState.waiting)
         self.food = None
+        self.numberdeliveryfood = 0
 
     def update(self):
         if self.food is not None:
@@ -382,12 +406,15 @@ class Distributor(Agent):
         self.trip = nx.shortest_path(graph, n1, n2)
 
     def decide(self):
+        global food_list
         # si el distribuidor tiene pedido y ha llegado al destino
         if self.food is not None and self.food.targetcustomer.position == self.position:
             self.food.targetcustomer.pedido_arrived()
             self.state = DistributorState.waiting
-            averageTime.append(self.food.iter)
+            food_list.append(self.food.iter)
+            self.numberdeliveryfood += 1
             self.food = None
+
 
             # Si el distribuidor tiene ruta
         if len(self.trip) > 1:
@@ -496,7 +523,7 @@ class App:
         game = Game(800, 600, self.grid, "Hola mundo")
         
         for i in range(steps):
-            time.sleep(0.25)
+            #time.sleep(1.0)
             # Render
             game.events_check()
             game.print_system()
@@ -518,17 +545,63 @@ class App:
             for a in agentList:
                 a.to_state()
 
+        self.time_food()
+        self.time_restaurant()
+        self.time_distributor()
+
+    def time_food(self):
+        global food_list
+        print('food_list', food_list)
+        mean = statistics.mean(food_list)
+        #print('mean_food_list', mean)
+        averagefood.append(mean)
+
+    def time_restaurant(self):
+        global restaurant_list
+        restaurant_list =  [agent.print_capacity() for agent in agentList if agent.__class__.__name__ == 'Restaurant']
+        print('restaurant_list', restaurant_list)
+        mean = statistics.mean(restaurant_list)
+        averagerestaurant.append(mean)
+
+
+    def time_distributor(self):
+        global distributor_list
+        distributor_list =  [agent.numberdeliveryfood for agent in agentList if agent.__class__.__name__ == 'Distributor']
+        print('distributor_list', distributor_list)
+        mean = statistics.mean(distributor_list)
+        averagedistributor.append(mean)
+
+    distributor_list
+
+
+def print_general_status():
+    global averageTime, averagerestaurant, averagedistributor
 
 # MAIN
 # =====
 def main():
-    global averageTime
+    global averageTime, averagerestaurant, averagedistributor, food_list, restaurant_list, distributor_list
     app = App(10, 0.3, True)
     app.addAgents(5, 10, 2)
     app.initial_state()
 
-    app.run((12 * 60) // 15)
-    print(averageTime)
+    
+
+    for _ in range(2): #10000 veces correr el programa
+        food_list = []
+        restaurant_list = []
+        distributor_list = []
+        app.run((24 * 60) // 15)
+        print('='*30)
+        print('Genral status')
+        print('averagefood', averagefood)
+        print('averagerestaurant', averagerestaurant)
+        print('averagedistributor', averagedistributor)
+    
+    #Imprimir gráficos
+    print_general_status()
+    #print(average_list)
+
     # print(sum(averageTime) / len(averageTime))    
 
 if __name__ == '__main__':
