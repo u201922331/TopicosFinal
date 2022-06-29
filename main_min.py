@@ -215,9 +215,10 @@ class Customer(Agent):
     def decide(self):
         if self.state == CustomerState.ordering:
             restaurants = [agent for agent in agentList if (agent.__class__.__name__ == 'Restaurant' and len(agent.preparingFood) < agent.capacity)]
+            restaurants.sort(key=lambda r: r.numberpreparedfood)
 
             if len(restaurants) > 0:
-                selectedRestaurant = random.choice(restaurants)
+                selectedRestaurant = restaurants[0]
 
                 #print('Customer', self.id, 'choose restaurant', selectedRestaurant.id)
 
@@ -290,9 +291,10 @@ class Restaurant(Agent):
         for food in self.readyFood:
             distributors = [agent for agent in agentList if (agent.__class__.__name__ == 'Distributor'
                                                              and agent.state == DistributorState.waiting)]
+            distributors.sort(key=lambda dist: dist.numberdeliveryfood)
 
             if (len(distributors) > 0) and (food not in auxdeliveryFood):
-                selectedDistributor = random.choice(distributors)
+                selectedDistributor = distributors[0]
                 # cambio la ruta del distribuidor, agrego el food
                 selectedDistributor.changeroute(self.position)
                 selectedDistributor.state = DistributorState.getting
@@ -531,14 +533,14 @@ class App:
         
         for i in range(steps):
             time.sleep(0.5)
-            # Render pygame
+            #Render pygame
             game.events_check()
             game.print_system()
             pygame.display.update()
 
 
-            #print('-' * 30)
-            #print(timetostring(i))
+            print('-' * 30)
+            print(timetostring(i))
 
             for a in agentList:
                 a.decide()

@@ -217,7 +217,8 @@ class Customer(Agent):
             restaurants = [agent for agent in agentList if (agent.__class__.__name__ == 'Restaurant' and len(agent.preparingFood) < agent.capacity)]
 
             if len(restaurants) > 0:
-                selectedRestaurant = random.choice(restaurants)
+                restaurants.sort(key=lambda r: nx.shortest_path_length(graph, self.position, r.position))
+                selectedRestaurant = restaurants[0]
 
                 #print('Customer', self.id, 'choose restaurant', selectedRestaurant.id)
 
@@ -290,9 +291,9 @@ class Restaurant(Agent):
         for food in self.readyFood:
             distributors = [agent for agent in agentList if (agent.__class__.__name__ == 'Distributor'
                                                              and agent.state == DistributorState.waiting)]
-
             if (len(distributors) > 0) and (food not in auxdeliveryFood):
-                selectedDistributor = random.choice(distributors)
+                distributors.sort(key=lambda dist: nx.shortest_path_length(graph, self.position, dist.position))
+                selectedDistributor = distributors[0]
                 # cambio la ruta del distribuidor, agrego el food
                 selectedDistributor.changeroute(self.position)
                 selectedDistributor.state = DistributorState.getting
@@ -437,8 +438,7 @@ class Distributor(Agent):
         print('my trip:', self.trip)
 
     def to_state(self):
-        print('I am distributor', self.id, 'with state', self.state.name)
-        #, 'and position', self.position, end='')
+        print('I am distributor', self.id, 'with state', self.state.name, 'and position', self.position, end='')
         #print('Food', self.food)
         #print('numberdeliveryfood', self.numberdeliveryfood)
 
@@ -537,8 +537,8 @@ class App:
             pygame.display.update()
 
 
-            #print('-' * 30)
-            #print(timetostring(i))
+            print('-' * 30)
+            print(timetostring(i))
 
             for a in agentList:
                 a.decide()
