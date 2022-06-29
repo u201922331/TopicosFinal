@@ -22,25 +22,27 @@ class Colors(Enum):
     blue = (0, 0, 255)
     yellow = (255, 255, 0)
 
+    customernone = (255, 170, 0)
+    customerordering = (255, 97, 0)
+    customerwaiting = (255, 97, 0)
+
+    restaurantwaiting = (12, 255, 0)
+    restaurantpreparing = (0, 255, 136)
+
+    distributorwaiting = (0, 199, 255)
+    distributorgetting = (0, 127, 255)
+    distributorsending = (0, 50, 255)
 
 class Game:
-    def __init__(self, width, height, title):
+    def __init__(self, width, height, grid, title):
         pygame.init()
         self.width, self.height = width, height
         self.title = title
         self.isRunning = True
         self.window = pygame.display.set_mode((self.width, self.height))
-
-    def run(self):
-        while self.isRunning:
-            self.events_check()
-            self.window.fill(Colors.white.value)
-            # Render
-            # ========
-            # pygame.draw.circle(self.window, Colors.red.value, (self.width / 2, self.height / 2), 5)
-            self.print_customers()
-            # ========
-            pygame.display.update()
+        self.grid = grid
+        self.gridvertical = self.height / (self.grid+2)
+        self.gridhorizontal = self.width / (self.grid+2)
 
     def events_check(self):
         for event in pygame.event.get():
@@ -50,59 +52,106 @@ class Game:
 
     def process_input(self):
         pass
+    
+    def calculate_pos(self, pos):
+        return (self.gridhorizontal + self.gridhorizontal * pos[0], self.gridvertical + self.gridvertical * pos[1])
 
-    def print_customers(self):
-        global agentList
-        costumers = [agent for agent in agentList if (agent.__class__.__name__ == 'Customer')]
-        print(len(costumers))
-        for costumer in costumers:
-            pos = (costumer.position[0] * self.width / grid, costumer.position[1] * self.height / grid)
-            # print(pos)
-            pygame.draw.circle(self.window, Colors.red.value, pos, 10)
+    def print_system(self):
+        global agentList, graph
+        
+        #Imprimir la grilla
+        self.window.fill(Colors.white.value)
+        for source, target in graph.edges:
+            sourcepos = self.calculate_pos(source)
+            targetpos = self.calculate_pos(target)
+            pygame.draw.line(self.window, Colors.black.value, sourcepos, targetpos)
 
+        for agent in agentList:
+            pos = self.calculate_pos(agent.position)
+            color = None
+            if agent.__class__.__name__ == 'Customer':
+                # print(pos)
+                if agent.state == CustomerState.none:
+                    color = Colors.customernone
+                elif agent.state == CustomerState.ordering:
+                    color = Colors.customerordering
+                else:
+                    color = Colors.customerwaiting
+
+            elif agent.__class__.__name__ == 'Restaurant':
+                if agent.state == RestaurantState.waiting:
+                    color = Colors.restaurantwaiting
+                else:
+                    color = Colors.restaurantpreparing
+            else:
+                if agent.state == DistributorState.waiting:
+                    color = Colors.distributorwaiting
+                elif agent.state == DistributorState.sending:
+                    color = Colors.distributorsending
+                else:
+                    color = Colors.distributorwaiting
+
+            pygame.draw.circle(self.window, color.value, pos, 5)
+                 
 
 # GLOBAL VARIABLES
 # =================
 agentList = []
 graphNodes = []
 averageTime = []
-graph = None
+graph = []
 grid = 8
 
 
 
 # GRAPH
 # ======
-def random_edge(graph, nb_edges, delete=True):
+def random_edge(nb_edges, delete=True):
+    global graph
     edges = list(graph.edges)
     nonedges = list(nx.non_edges(graph))
 
     if delete:
         chosen_edges = random.sample(edges, nb_edges)
         for edge in chosen_edges:
-            graph.remove_edge(edge[0], edge[1])
+            try:
+                graph.remove_edge(edge[0], edge[1])
+                graph.remove_edge(edge[1], edge[0])
+            except:
+                print('Already deleted')
+
     else:
         chosen_nonedges = random.sample(nonedges, nb_edges)
         for nonedge in chosen_nonedges:
-            graph.add_edge(nonedge[0], nonedge[1])
+            try:
+                graph.add_edge(nonedge[0], nonedge[1])
+                graph.add_edge(nonedge[1], nonedge[0])
+            except:
+                print('Already added')
+
 
 
 def generate_2d_graph(n, coef=False, delete=True, show=False):
+    global graph
+    print('before generate', len(graph))
     graph = nx.grid_2d_graph(n, n)
+
     if not coef:
         nb_ = int(len(list(graph.nodes)) * coef)
-        random_edge(graph, nb_, delete)
+        random_edge(nb_, delete)
+    
+    print('already generate', len(graph))
+
     pos = nx.spring_layout(graph, iterations=100)
     graph.remove_edges_from(list(nx.isolates(graph)))
     graph = graph.to_directed()
+
+    print('afeter generate', len(graph))
 
     if show:
         nx.draw(graph, pos, node_color='b', node_size=20, with_labels=False)
         plt.title('Road Network')
         plt.show()
-
-    return graph
-
 
 # AGENT
 # ======
@@ -137,7 +186,11 @@ class CustomerState(Enum):
 class Customer(Agent):
     def __init__(self, _id, frequency):
         global graphNodes, agentList
+        customerspositions = [agent.position for agent in agentList if agent.__class__.__name__=='Customer']
         position = random.choice(graphNodes)
+        while position in customerspositions:
+            position = random.choice(graphNodes)
+
         super().__init__(_id, position, CustomerState.none)
         self.frequency = frequency
         self.iter = 0
@@ -407,8 +460,9 @@ def timetostring(ticks):
 class App:
     def __init__(self, grid, coef, delete):
         global agentList, graph, graphNodes
-        graph = generate_2d_graph(grid, coef, delete, show=False)
+        generate_2d_graph(grid, coef, delete, show=False)
         graphNodes = list(graph.nodes)
+        self.grid = grid
 
     def addAgents(self, ncustomer, nrestaurants, ndistributor):
         for i in range(ncustomer):
@@ -438,8 +492,17 @@ class App:
             ag.to_string()
 
     def run(self, steps):
+
+        game = Game(800, 600, self.grid, "Hola mundo")
+        
         for i in range(steps):
             time.sleep(0.25)
+            # Render
+            game.events_check()
+            game.print_system()
+            pygame.display.update()
+
+
             print('-' * 30)
             print(timetostring(i))
 
@@ -459,19 +522,14 @@ class App:
 # MAIN
 # =====
 def main():
-    global averageTime, grid
-    grid = 10
-    app = App(10, 0.2, True)
+    global averageTime
+    app = App(10, 0.3, True)
     app.addAgents(5, 10, 2)
     app.initial_state()
 
     app.run((12 * 60) // 15)
     print(averageTime)
-    # print(sum(averageTime) / len(averageTime))
-
-    game = Game(800, 600, "Hola mundo")
-    game.run()
-
+    # print(sum(averageTime) / len(averageTime))    
 
 if __name__ == '__main__':
     main()
