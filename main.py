@@ -167,7 +167,6 @@ class Agent:
         self.id = _id
         self.position = position
         self.state = state
-        self.isAlive = True
 
     def to_string(self):
         pass
@@ -530,11 +529,11 @@ class App:
         game = Game(800, 600, self.grid, "Hola mundo")
         
         for i in range(steps):
-            time.sleep(0.5)
+            # time.sleep(0.5)
             # Render pygame
-            game.events_check()
-            game.print_system()
-            pygame.display.update()
+            # game.events_check()
+            # game.print_system()
+            # pygame.display.update()
 
 
             #print('-' * 30)
@@ -545,12 +544,10 @@ class App:
             for a in agentList:
                 a.update()
 
-            for a in agentList:
-                if a.isAlive == False:
-                    agentList.remove(a)
+            
 
-            for a in agentList:
-                a.to_state()
+            # for a in agentList:
+            #     a.to_state()
 
         self.time_food()
         self.time_restaurant()
@@ -629,9 +626,9 @@ def print_general_status(steps, nrestaurants, ndistributors):
 def main():
     global food_list, restaurant_list, distributor_list, agentList, graph, graphNodes
     
-    ncustomers = 5
-    nrestaurants = 5
-    ndistributors = 2
+    ncustomers = 2000
+    nrestaurants = 100
+    ndistributors = 300
     #proportion frecuencia
     #70%: 32 ticks (8 horas)
     #20%: 48 ticks (12 horas)
@@ -640,9 +637,10 @@ def main():
     #proporcion de restaurantes con capacidad
     #70%: 5 food capacidad
     #30%: 1 food capacidad
-    proportionRestaurant = [(0.7, 5), (0.3, 10)]
+    #proportionRestaurant = [(0.7, 5), (0.3, 10)]
+    proportionRestaurant = [(1.0, 10)]
     
-    steps = 100
+    steps = 1
     for _ in range(steps): #10000 veces correr el programa
         food_list = []
         restaurant_list = []
@@ -650,10 +648,10 @@ def main():
         agentList = []
         graph = []
         graphNodes = []
-        app = App(10, 0.3, True)    
-        ncustomers = 5
-        nrestaurants = 5
-        ndistributors = 2
+        app = App(100, 0.3, True)    
+        ncustomers = 2000
+        nrestaurants = 100
+        ndistributors = 300
 
         ncustomers = app.addCustomers(ncustomers, proportionCustomer)
         nrestaurants = app.addRestaurants(nrestaurants, proportionRestaurant)
