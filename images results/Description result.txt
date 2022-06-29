@@ -1,0 +1,1 @@
+- 01 results: 1000 iteraciones, 24 horas, grilla de 3x3, 5 clientes, 5 restaurantes, 2 distributors

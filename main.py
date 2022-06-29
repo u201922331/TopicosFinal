@@ -11,14 +11,10 @@ from enum import Enum
 import time
 import pygame
 import statistics
-import matplotlib
-matplotlib.use("Agg")
-import matplotlib.backends.backend_agg as agg
+import matplotlib.pyplot as plt
 
 
-import pylab
-# GAME
-# =====
+
 class Colors(Enum):
     white = (255, 255, 255)
     black = (0, 0, 0)
@@ -104,19 +100,17 @@ class Game:
 agentList = []
 graphNodes = []
 
-
-
 graph = []
-grid = 8
 
-averagefood = []
-averagerestaurant = []
-averagedistributor = []
+#por cada restaurante o distribudor
+food_list = [] #cantidad de tiempo del food
+restaurant_list = [] #cantidad pedidos
+distributor_list = [] #cantidad de pedidos
 
-food_list = []
-restaurant_list = []
-distributor_list = []
-
+#por cada ejecucion del programa
+food_timegeneral = [] #almacenar tiempo promedio
+restaurant_general = [] #alamcenar promedio de capacidad
+distributor_general = [] #media de pedidos que atendio
 
 # GRAPH
 # ======
@@ -130,16 +124,14 @@ def random_edge(nb_edges, delete=True):
         for edge in chosen_edges:
             try:
                 graph.remove_edge(edge[0], edge[1])
-                graph.remove_edge(edge[1], edge[0])
             except:
-                print('Already deleted')
-
+                print('Already removed')
+            
     else:
         chosen_nonedges = random.sample(nonedges, nb_edges)
         for nonedge in chosen_nonedges:
             try:
                 graph.add_edge(nonedge[0], nonedge[1])
-                graph.add_edge(nonedge[1], nonedge[0])
             except:
                 print('Already added')
 
@@ -242,7 +234,7 @@ class Customer(Agent):
             print('I am customer', self.id, 'with state', self.state.name)
 
     def to_string(self):
-        print('I am customer "', self.id, '" with state "', self.state.name, '" at the position "', self.position, '".')
+        print('I am customer "', self.id, '" with state "', self.state.name, '" at the position "', self.position, 'frequency', self.frequency, 'iterador', self.iter)
 
 
 # RESTAURANT
@@ -364,7 +356,12 @@ class Restaurant(Agent):
                 print('Food to delivery', food.targetdistributor.id)
 
     def to_string(self):
-        print('I am restaurant', self.id, 'with state', self.state.name, 'at the position ', self.position)
+        print('I am restaurant', self.id, 'with state', self.state.name, 'at the position ', self.position, 'capacity', self.capacity)
+        print('Preparing food', self.preparingFood)
+        print('Ready food', self.readyFood)
+        print('deliveryFood', self.deliveryFood)
+        print('numberpreparedfood', self.numberpreparedfood)
+        print('maxpreparedfood', self.maxpreparedfood)
     
     def print_capacity(self):
         return self.maxpreparedfood / self.capacity
@@ -437,10 +434,14 @@ class Distributor(Agent):
             self.food = food
 
     def to_string(self):
-        pass
+        print('I am distributor', self.id, 'with state', self.state.name, 'and position', self.position, end='')
+        print('my trip:', self.trip)
 
     def to_state(self):
         print('I am distributor', self.id, 'with state', self.state.name, 'and position', self.position, end='')
+        print('Food', self.food)
+        print('numberdeliveryfood', self.numberdeliveryfood)
+
         print('my trip:', self.trip)
 
 
@@ -490,6 +491,9 @@ class App:
         generate_2d_graph(grid, coef, delete, show=False)
         graphNodes = list(graph.nodes)
         self.grid = grid
+        print(graph.nodes)
+        print(graph.edges)
+
 
     def addAgents(self, ncustomer, nrestaurants, ndistributor):
         for i in range(ncustomer):
@@ -524,10 +528,10 @@ class App:
         
         for i in range(steps):
             #time.sleep(1.0)
-            # Render
-            game.events_check()
-            game.print_system()
-            pygame.display.update()
+            # Render pygame
+            #game.events_check()
+            #game.print_system()
+            #pygame.display.update()
 
 
             print('-' * 30)
@@ -542,64 +546,113 @@ class App:
                 if a.isAlive == False:
                     agentList.remove(a)
 
-            for a in agentList:
-                a.to_state()
+            # for a in agentList:
+            #     a.to_state()
 
         self.time_food()
         self.time_restaurant()
         self.time_distributor()
 
     def time_food(self):
-        global food_list
-        print('food_list', food_list)
-        mean = statistics.mean(food_list)
+        global food_list, food_timegeneral
+        #print('food_list', food_list)
+        if len(food_list) > 0:
+            mean = statistics.mean(food_list)
+        else:
+            mean = 0
         #print('mean_food_list', mean)
-        averagefood.append(mean)
+        food_timegeneral.append(mean)
+
+
 
     def time_restaurant(self):
-        global restaurant_list
+        global restaurant_list, restaurant_general
         restaurant_list =  [agent.print_capacity() for agent in agentList if agent.__class__.__name__ == 'Restaurant']
-        print('restaurant_list', restaurant_list)
-        mean = statistics.mean(restaurant_list)
-        averagerestaurant.append(mean)
-
+        #print('restaurant_list', restaurant_list)
+        print(restaurant_list)
+        # mean = statistics.mean(restaurant_list)
+        restaurant_general.append(restaurant_list)
 
     def time_distributor(self):
-        global distributor_list
+        global distributor_list, distributor_general
         distributor_list =  [agent.numberdeliveryfood for agent in agentList if agent.__class__.__name__ == 'Distributor']
-        print('distributor_list', distributor_list)
-        mean = statistics.mean(distributor_list)
-        averagedistributor.append(mean)
+        #print('distributor_list', distributor_list)
+        # mean = statistics.mean(distributor_list)
+        distributor_general.append(distributor_list)
 
-    distributor_list
+def print_general_status(steps, nrestaurants, ndistributors):
+    global food_timegeneral, restaurant_general, distributor_general
+    print('General Status:')
+    print('food_timegeneral', food_timegeneral)
+    print()
+    print('restaurant_general', restaurant_general)
+    print()
+    print('distributor_general', distributor_general)
+
+    #Creates just a figure and only one subplot
+    
+    fig, axes = plt.subplots(3, 1, figsize=(10, 10))
+    
+    #Food
+    axes[0].set_title('Tiempo promedio que demora el pedido por ejecución')
+    x = np.arange(steps)
+    axes[0].plot(x, food_timegeneral)
+    axes[0].set_yticks(np.arange(0, max(food_timegeneral)+1, 1))
+
+    #restaurant
+    axes[1].set_title('Porcentaje logrado de capacidad por restaurante en cada ejecución')
+    x = np.arange(nrestaurants)
+    for timerestaurant in restaurant_general:
+        axes[1].plot(x, timerestaurant)
+    axes[1].set_yticks(np.arange(0, 1.1, 0.1))
+    axes[1].set_xticks(x)
+
+    #distributor
+    axes[2].set_title('Cantidad de delivery por motoizado en cada ejecución')
+    x = np.arange(ndistributors)
+    max_delivery = 0
+    for distributor in distributor_general:
+        axes[2].plot(x, distributor)
+        max_delivery = max(max_delivery, max(distributor))
+        print('max_delivery', max_delivery)
+        print('max_delivery', distributor)
+        
+    axes[2].set_yticks(np.arange(0, max_delivery+1))
+    axes[2].set_xticks(x)
+
+    fig.tight_layout()
+    plt.show()
 
 
-def print_general_status():
-    global averageTime, averagerestaurant, averagedistributor
 
 # MAIN
 # =====
 def main():
-    global averageTime, averagerestaurant, averagedistributor, food_list, restaurant_list, distributor_list
-    app = App(10, 0.3, True)
-    app.addAgents(5, 10, 2)
-    app.initial_state()
-
+    global food_list, restaurant_list, distributor_list, agentList, graph, graphNodes
     
-
-    for _ in range(2): #10000 veces correr el programa
+    ncustomers = 5
+    nrestaurants = 5
+    ndistributors = 2
+    steps = 1000
+    for _ in range(steps): #10000 veces correr el programa
         food_list = []
         restaurant_list = []
         distributor_list = []
-        app.run((24 * 60) // 15)
-        print('='*30)
-        print('Genral status')
-        print('averagefood', averagefood)
-        print('averagerestaurant', averagerestaurant)
-        print('averagedistributor', averagedistributor)
+        agentList = []
+        graph = []
+        graphNodes = []
+        app = App(3, 0.3, True)    
+        app.addAgents(ncustomers, nrestaurants, ndistributors)
+        app.initial_state()
+        app.run((25 * 60) // 15)
+        # print('='*30)
+        # print('Genral status')
+        # print('averagefood', averagefood)
+        # print('averagerestaurant', averagerestaurant)
+        # print('averagedistributor', averagedistributor)
     
     #Imprimir gráficos
-    print_general_status()
+    print_general_status(steps, nrestaurants,ndistributors )
     #print(average_list)
 
     # print(sum(averageTime) / len(averageTime))    
