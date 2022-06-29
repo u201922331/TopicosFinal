@@ -54,9 +54,10 @@ class Game:
     def print_customers(self):
         global agentList
         costumers = [agent for agent in agentList if (agent.__class__.__name__ == 'Customer')]
+        print(len(costumers))
         for costumer in costumers:
-            pos = (costumer.position[0] * self.width / 10, costumer.position[1] * self.height / 10)
-            print(pos)
+            pos = (costumer.position[0] * self.width / grid, costumer.position[1] * self.height / grid)
+            # print(pos)
             pygame.draw.circle(self.window, Colors.red.value, pos, 10)
 
 
@@ -66,6 +67,8 @@ agentList = []
 graphNodes = []
 averageTime = []
 graph = None
+grid = 8
+
 
 
 # GRAPH
@@ -456,7 +459,8 @@ class App:
 # MAIN
 # =====
 def main():
-    global averageTime
+    global averageTime, grid
+    grid = 10
     app = App(10, 0.2, True)
     app.addAgents(5, 10, 2)
     app.initial_state()
@@ -466,11 +470,6 @@ def main():
     # print(sum(averageTime) / len(averageTime))
 
     game = Game(800, 600, "Hola mundo")
-    game.run()
-
-
-def main2():
-    game = Game(800, 800, "Hola mundo")
     game.run()
 
 
