@@ -148,12 +148,12 @@ def generate_2d_graph(n, coef=False, delete=True, show=False):
     
     graph.remove_edges_from(list(nx.isolates(graph)))
     graph.remove_nodes_from(list(nx.isolates(graph)))
-    pos = nx.spring_layout(graph, iterations=100)
+    # pos = nx.spring_layout(graph, iterations=100)
 
     graph = graph.to_directed()
 
     if show:
-        nx.draw(graph, pos, node_color='b', node_size=20, with_labels=False)
+        # nx.draw(graph, pos, node_color='b', node_size=20, with_labels=False)
         plt.title('Road Network')
         plt.show()
 
@@ -513,17 +513,21 @@ class App:
 
     def run(self, steps):
 
-        game = Game(800, 600, self.grid, "Hola mundo")
+        #game = Game(800, 600, self.grid, "Hola mundo")
         
         for i in range(steps):
-            time.sleep(0.5)
+
             # Render pygame
+            """
+            time.sleep(0.5)
             game.events_check()
             game.print_system()
             pygame.display.update()
+            """
 
-            print('-' * 30)
-            print(timetostring(i))
+
+            #print('-' * 30)
+            #print(timetostring(i))
 
             for a in agentList:
                 a.decide()
@@ -532,8 +536,10 @@ class App:
 
             
 
+            """
             for a in agentList:
                 a.to_state()
+            """
 
         self.time_food()
         self.time_restaurant()
@@ -575,7 +581,7 @@ def print_general_status(steps, nrestaurants, ndistributors):
     axes[0].set_title('Tiempo promedio que demora el pedido por ejecución')
     x = np.arange(steps)
     axes[0].plot(x, food_timegeneral)
-    axes[0].set_yticks(np.arange(0, max(food_timegeneral)+1, 20))
+    axes[0].set_yticks(np.arange(0, 101, 20))
 
     #restaurant
     axes[1].set_title('Porcentaje logrado de capacidad por restaurante en cada ejecución')
@@ -591,9 +597,9 @@ def print_general_status(steps, nrestaurants, ndistributors):
     max_delivery = 0
     for distributor in distributor_general:
         axes[2].plot(x, distributor)
-        max_delivery = max(max_delivery, max(distributor))
+        #max_delivery = max(max_delivery, max(distributor))
         
-    axes[2].set_yticks(np.arange(0, 8, 1))
+    axes[2].set_yticks(np.arange(0, 16, 3))
     axes[2].set_xticks(x)
 
     fig.tight_layout()

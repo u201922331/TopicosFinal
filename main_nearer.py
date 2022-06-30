@@ -527,7 +527,7 @@ class App:
 
     def run(self, steps):
 
-        game = Game(800, 600, self.grid, "Hola mundo")
+        #game = Game(800, 600, self.grid, "Hola mundo")
         
         for i in range(steps):
             # time.sleep(0.5)
@@ -596,7 +596,7 @@ def print_general_status(steps, nrestaurants, ndistributors):
     axes[0].set_title('Tiempo promedio que demora el pedido por ejecución')
     x = np.arange(steps)
     axes[0].plot(x, food_timegeneral)
-    axes[0].set_yticks(np.arange(0, max(food_timegeneral)+1, 30))
+    axes[0].set_yticks(np.arange(0, 101, 20))
 
     #restaurant
     axes[1].set_title('Porcentaje logrado de capacidad por restaurante en cada ejecución')
@@ -614,7 +614,7 @@ def print_general_status(steps, nrestaurants, ndistributors):
         axes[2].plot(x, distributor)
         max_delivery = max(max_delivery, max(distributor))
         
-    axes[2].set_yticks(np.arange(0, max_delivery+1, 8))
+    axes[2].set_yticks(np.arange(0, 16, 3))
     axes[2].set_xticks(x)
 
     fig.tight_layout()
