@@ -151,12 +151,12 @@ def generate_2d_graph(n, coef=False, delete=True, show=False):
     
     graph.remove_edges_from(list(nx.isolates(graph)))
     graph.remove_nodes_from(list(nx.isolates(graph)))
-    pos = nx.spring_layout(graph, iterations=100)
+    # pos = nx.spring_layout(graph, iterations=100)
 
     graph = graph.to_directed()
 
     if show:
-        nx.draw(graph, pos, node_color='b', node_size=20, with_labels=False)
+        #nx.draw(graph, pos, node_color='b', node_size=20, with_labels=False)
         plt.title('Road Network')
         plt.show()
 

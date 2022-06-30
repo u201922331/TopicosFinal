@@ -1,6 +1,5 @@
 import networkx as nx
 import random
-import matplotlib.pyplot as plt
 import itertools
 import numpy as np
 from timeit import default_timer as timer
@@ -72,7 +71,6 @@ class Game:
             pos = self.calculate_pos(agent.position)
             color = None
             if agent.__class__.__name__ == 'Customer':
-                # print(pos)
                 if agent.state == CustomerState.none:
                     color = Colors.customernone
                 elif agent.state == CustomerState.ordering:
@@ -138,7 +136,6 @@ def random_edge(nb_edges, delete=True):
 
 def generate_2d_graph(n, coef=False, delete=True, show=False):
     global graph
-    # print('before generate', len(graph.nodes))
     graph = nx.grid_2d_graph(n, n)
 
     if coef is not False:
@@ -218,14 +215,10 @@ class Customer(Agent):
             if len(restaurants) > 0:
                 selectedRestaurant = random.choice(restaurants)
 
-                #print('Customer', self.id, 'choose restaurant', selectedRestaurant.id)
-
                 timeToPrepare = random.randint(1, 3)
                 food = Food(timeToPrepare, self)
                 selectedRestaurant.addFood(food)
                 self.state = CustomerState.waiting
-            #else:
-                #print('Customer', self.id, 'not found restaurants')
 
     def to_state(self):
         if self.state == CustomerState.waiting:
@@ -415,7 +408,6 @@ class Distributor(Agent):
         if len(self.trip) > 1:
             old = self.trip.pop(0)
             self.position = self.trip[0]
-            # print('Distributor', self.id, 'moving from', old, 'to', self.current)
 
         # si ya no tengo ruta
         if len(self.trip) == 1:
@@ -437,11 +429,6 @@ class Distributor(Agent):
 
     def to_state(self):
         print('I am distributor', self.id, 'with state', self.state.name)
-        #, 'and position', self.position, end='')
-        #print('Food', self.food)
-        #print('numberdeliveryfood', self.numberdeliveryfood)
-
-        #print('my trip:', self.trip)
 
 
 # FOOD
@@ -529,15 +516,14 @@ class App:
         game = Game(800, 600, self.grid, "Hola mundo")
         
         for i in range(steps):
-            # time.sleep(0.5)
+            time.sleep(0.5)
             # Render pygame
-            # game.events_check()
-            # game.print_system()
-            # pygame.display.update()
+            game.events_check()
+            game.print_system()
+            pygame.display.update()
 
-
-            #print('-' * 30)
-            #print(timetostring(i))
+            print('-' * 30)
+            print(timetostring(i))
 
             for a in agentList:
                 a.decide()
@@ -546,8 +532,8 @@ class App:
 
             
 
-            # for a in agentList:
-            #     a.to_state()
+            for a in agentList:
+                a.to_state()
 
         self.time_food()
         self.time_restaurant()
@@ -555,27 +541,21 @@ class App:
 
     def time_food(self):
         global food_list, food_timegeneral
-        #print('food_list', food_list)
         if len(food_list) > 0:
             mean = statistics.mean(food_list)
         else:
             mean = 0
-        #print('mean_food_list', mean)
         food_timegeneral.append(mean)
 
     def time_restaurant(self):
         global restaurant_list, restaurant_general
         restaurant_list =  [agent.print_capacity() for agent in agentList if agent.__class__.__name__ == 'Restaurant']
-        #print('restaurant_list', restaurant_list)
-        
-        # mean = statistics.mean(restaurant_list)
+
         restaurant_general.append(restaurant_list)
 
     def time_distributor(self):
         global distributor_list, distributor_general
         distributor_list =  [agent.numberdeliveryfood for agent in agentList if agent.__class__.__name__ == 'Distributor']
-        #print('distributor_list', distributor_list)
-        # mean = statistics.mean(distributor_list)
         distributor_general.append(distributor_list)
 
 def print_general_status(steps, nrestaurants, ndistributors):
@@ -661,11 +641,7 @@ def main():
         
         #app.initial_state()
         app.run((48 * 60) // 15)
-        # print('='*30)
-        # print('Genral status')
-        # print('averagefood', averagefood)
-        # print('averagerestaurant', averagerestaurant)
-        # print('averagedistributor', averagedistributor)
+
 
     print("Tiempo de ejecución:", time.time() - start_time)
     #Imprimir gráficos
