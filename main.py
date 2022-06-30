@@ -595,7 +595,7 @@ def print_general_status(steps, nrestaurants, ndistributors):
     axes[0].set_title('Tiempo promedio que demora el pedido por ejecución')
     x = np.arange(steps)
     axes[0].plot(x, food_timegeneral)
-    axes[0].set_yticks(np.arange(0, max(food_timegeneral)+1, 1))
+    axes[0].set_yticks(np.arange(0, max(food_timegeneral)+1, 20))
 
     #restaurant
     axes[1].set_title('Porcentaje logrado de capacidad por restaurante en cada ejecución')
@@ -613,7 +613,7 @@ def print_general_status(steps, nrestaurants, ndistributors):
         axes[2].plot(x, distributor)
         max_delivery = max(max_delivery, max(distributor))
         
-    axes[2].set_yticks(np.arange(0, max_delivery+1))
+    axes[2].set_yticks(np.arange(0, 8, 1))
     axes[2].set_xticks(x)
 
     fig.tight_layout()
@@ -625,7 +625,9 @@ def print_general_status(steps, nrestaurants, ndistributors):
 # =====
 def main():
     global food_list, restaurant_list, distributor_list, agentList, graph, graphNodes
-    
+
+    start_time = time.time()
+
     ncustomers = 2000
     nrestaurants = 100
     ndistributors = 300
@@ -640,7 +642,7 @@ def main():
     #proportionRestaurant = [(0.7, 5), (0.3, 10)]
     proportionRestaurant = [(1.0, 10)]
     
-    steps = 1
+    steps = 10
     for _ in range(steps): #10000 veces correr el programa
         food_list = []
         restaurant_list = []
@@ -648,7 +650,7 @@ def main():
         agentList = []
         graph = []
         graphNodes = []
-        app = App(100, 0.3, True)    
+        app = App(45, 0.3, True)
         ncustomers = 2000
         nrestaurants = 100
         ndistributors = 300
@@ -664,7 +666,8 @@ def main():
         # print('averagefood', averagefood)
         # print('averagerestaurant', averagerestaurant)
         # print('averagedistributor', averagedistributor)
-    
+
+    print("Tiempo de ejecución:", time.time() - start_time)
     #Imprimir gráficos
     print_general_status(steps, nrestaurants, ndistributors)
     #print(average_list)
