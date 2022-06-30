@@ -659,7 +659,7 @@ def main():
         app.addDistributor(ndistributors)
         
         #app.initial_state()
-        app.run((48 * 60) // 15)
+        app.run((1 * 60) // 15)
         # print('='*30)
         # print('Genral status')
         # print('averagefood', averagefood)
