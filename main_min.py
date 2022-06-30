@@ -151,12 +151,12 @@ def generate_2d_graph(n, coef=False, delete=True, show=False):
     
     graph.remove_edges_from(list(nx.isolates(graph)))
     graph.remove_nodes_from(list(nx.isolates(graph)))
-    pos = nx.spring_layout(graph, iterations=100)
+    #pos = nx.spring_layout(graph, iterations=100)
 
     graph = graph.to_directed()
 
     if show:
-        nx.draw(graph, pos, node_color='b', node_size=20, with_labels=False)
+        # nx.draw(graph, pos, node_color='b', node_size=20, with_labels=False)
         plt.title('Road Network')
         plt.show()
 
@@ -596,7 +596,7 @@ def print_general_status(steps, nrestaurants, ndistributors):
     axes[0].set_title('Tiempo promedio que demora el pedido por ejecución')
     x = np.arange(steps)
     axes[0].plot(x, food_timegeneral)
-    axes[0].set_yticks(np.arange(0, max(food_timegeneral)+1, 1))
+    #axes[0].set_yticks(np.arange(0, max(food_timegeneral)+1, 1))
 
     #restaurant
     axes[1].set_title('Porcentaje logrado de capacidad por restaurante en cada ejecución')
@@ -626,7 +626,9 @@ def print_general_status(steps, nrestaurants, ndistributors):
 # =====
 def main():
     global food_list, restaurant_list, distributor_list, agentList, graph, graphNodes
-    
+
+    start_time = time.time()
+
     ncustomers = 2000
     nrestaurants = 100
     ndistributors = 300
@@ -641,7 +643,7 @@ def main():
     #proportionRestaurant = [(0.7, 5), (0.3, 10)]
     proportionRestaurant = [(1.0, 10)]
     
-    steps = 100
+    steps = 10
     for _ in range(steps): #10000 veces correr el programa
         food_list = []
         restaurant_list = []
@@ -649,7 +651,7 @@ def main():
         agentList = []
         graph = []
         graphNodes = []
-        app = App(100, 0.3, True)    
+        app = App(45, 0.3, True)
         ncustomers = 2000
         nrestaurants = 100
         ndistributors = 300
@@ -659,13 +661,14 @@ def main():
         app.addDistributor(ndistributors)
         
         #app.initial_state()
-        app.run((1 * 60) // 15)
+        app.run((48 * 60) // 15)
         # print('='*30)
         # print('Genral status')
         # print('averagefood', averagefood)
         # print('averagerestaurant', averagerestaurant)
         # print('averagedistributor', averagedistributor)
-    
+
+    print("Tiempo de ejecución:", time.time() - start_time)
     #Imprimir gráficos
     print_general_status(steps, nrestaurants, ndistributors)
     #print(average_list)
