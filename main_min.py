@@ -528,18 +528,18 @@ class App:
 
     def run(self, steps):
 
-        # game = Game(800, 600, self.grid, "Hola mundo")
+        game = Game(800, 600, self.grid, "Hola mundo")
         
         for i in range(steps):
-            # time.sleep(0.5)
+            time.sleep(0.5)
             #Render pygame
-            # game.events_check()
-            # game.print_system()
-            # pygame.display.update()
+            game.events_check()
+            game.print_system()
+            pygame.display.update()
 
 
-            # print('-' * 30)
-            # print(timetostring(i))
+            print('-' * 30)
+            print(timetostring(i))
 
             for a in agentList:
                 a.decide()
@@ -547,8 +547,8 @@ class App:
                 a.update()
 
             
-            # for a in agentList:
-            #     a.to_state()
+            for a in agentList:
+                a.to_state()
 
         self.time_food()
         self.time_restaurant()
@@ -625,53 +625,68 @@ def print_general_status(steps, nrestaurants, ndistributors):
 # MAIN
 # =====
 def main():
+    datos_prueba = True
+
     global food_list, restaurant_list, distributor_list, agentList, graph, graphNodes
 
     start_time = time.time()
 
-    ncustomers = 2000
-    nrestaurants = 100
-    ndistributors = 300
-    #proportion frecuencia
-    #70%: 32 ticks (8 horas)
-    #20%: 48 ticks (12 horas)
-    #10%: 96 ticks (24 horas)
+    if datos_prueba:
+        ncustomers = 10
+        nrestaurants = 2
+        ndistributors = 3
+    else:
+        ncustomers = 2000
+        nrestaurants = 100
+        ndistributors = 300
+
+    # proportion frecuencia
+    # 70%: 32 ticks (8 horas)
+    # 20%: 48 ticks (12 horas)
+    # 10%: 96 ticks (24 horas)
     proportionCustomer = [(0.7, 32), (0.2, 48), (0.1, 96)]
-    #proporcion de restaurantes con capacidad
-    #70%: 5 food capacidad
-    #30%: 1 food capacidad
-    #proportionRestaurant = [(0.7, 5), (0.3, 10)]
+    # proporcion de restaurantes con capacidad
+    # 70%: 5 food capacidad
+    # 30%: 1 food capacidad
+    # proportionRestaurant = [(0.7, 5), (0.3, 10)]
     proportionRestaurant = [(1.0, 10)]
-    
+
     steps = 10
-    for _ in range(steps): #10000 veces correr el programa
+    for _ in range(steps):  # 10000 veces correr el programa
         food_list = []
         restaurant_list = []
         distributor_list = []
         agentList = []
         graph = []
         graphNodes = []
-        app = App(45, 0.3, True)
-        ncustomers = 2000
-        nrestaurants = 100
-        ndistributors = 300
+
+        if datos_prueba:
+            grilla = 20
+        else:
+            grilla = 45
+
+        app = App(grilla, 0.3, True)
+
+        if datos_prueba:
+            ncustomers = 10
+            nrestaurants = 2
+            ndistributors = 3
+        else:
+            ncustomers = 2000
+            nrestaurants = 100
+            ndistributors = 300
 
         ncustomers = app.addCustomers(ncustomers, proportionCustomer)
         nrestaurants = app.addRestaurants(nrestaurants, proportionRestaurant)
         app.addDistributor(ndistributors)
-        
-        #app.initial_state()
+
+        # app.initial_state()
         app.run((48 * 60) // 15)
-        # print('='*30)
-        # print('Genral status')
-        # print('averagefood', averagefood)
-        # print('averagerestaurant', averagerestaurant)
-        # print('averagedistributor', averagedistributor)
 
     print("Tiempo de ejecución:", time.time() - start_time)
-    #Imprimir gráficos
+    # Imprimir gráficos
     print_general_status(steps, nrestaurants, ndistributors)
-    #print(average_list)
+    # print(average_list)
 
     # print(sum(averageTime) / len(averageTime))    
 
